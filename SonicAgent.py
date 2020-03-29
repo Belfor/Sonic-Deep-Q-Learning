@@ -31,7 +31,7 @@ class SonicAgent():
         self.epsilon_decay = LinearDecaySchedule(1.0, 0.1, max_steps)
         self.test = test
         
-        self.batch_size = 64
+        self.batch_size = 128
         self.memory = deque(maxlen = 50000)
         
         self.model = self.getModel(env.observation_space.shape,env.action_space.n)
@@ -40,12 +40,13 @@ class SonicAgent():
         self.model.summary()
         self.model.compile(loss=keras.losses.mean_squared_error,optimizer=keras.optimizers.Adam(learning_rate=self.lr),metrics=["accuracy"])
         self.target_model.compile(loss=keras.losses.mean_squared_error,optimizer=keras.optimizers.Adam(learning_rate=self.lr),metrics=["accuracy"])
-         
+        #self.tensorboard = TensorBoard(log_dir="logs/sonic")
+        #self.tensorboard.set_model(self.model)
     def getModel(self,input_shape,output_shape):
         inputs = Input(input_shape)
-        x = Conv2D(64,kernel_size = (4,4),strides = (2,2),padding = 'valid',activation='relu')(inputs)
-        x = Conv2D(32,kernel_size = (4,4),strides = (2,2),activation='relu')(x)
-        x = Conv2D(32,kernel_size = (3,3),strides = (1,1),activation='relu')(x)
+        x = Conv2D(32,kernel_size = (8,8),strides = (4,4),padding = 'valid',activation='relu')(inputs)
+        x = Conv2D(64,kernel_size = (4,4),strides = (2,2),activation='relu')(x)
+        x = Conv2D(128,kernel_size = (4,4),strides = (2,2),activation='relu')(x)
         x = Flatten()(x)
         x = Dense(512,activation='relu')(x)
         x = Dense(output_shape,activation='linear')(x)
@@ -78,6 +79,7 @@ class SonicAgent():
             targets[i,action] = self.target_reward(obs, action, reward, next_obs, done)
             inputs[i] = obs[np.newaxis,:]
         self.model.train_on_batch(inputs,targets)
+            
             
     def target_reward(self, obs, action, reward, next_obs, done):
        

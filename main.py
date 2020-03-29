@@ -12,6 +12,8 @@ import csv
 from SonicAgent import SonicAgent
 from utils.utils import make_env
 from retro_contest.local import make
+from pathlib import Path
+from gym.wrappers import Monitor
 
 TIMESTEPS_PER_EPISODE = 4500
 EPISODES = 100
@@ -64,7 +66,10 @@ def training(env):
     env = make_env(env)
 
     sonic = SonicAgent(env,TIMESTEPS_PER_EPISODE * EPISODES)
-    sonic.load_model('sonic_model_final.h5')
+    file = Path('sonic_model_final.h5')
+    if file.is_file():
+        sonic.load_model('sonic_model_final.h5')
+    
     obs = env.reset()
     for episodes in range(EPISODES):
         done = False
@@ -76,6 +81,7 @@ def training(env):
             if (len(sonic.memory) > sonic.batch_size):
                 sonic.replay_and_learn()
             total_reward += reward
+           
             obs = next_obs
             if done:
                 break
@@ -88,14 +94,15 @@ def training(env):
         obs = env.reset()
         total_reward = 0.0
         
-    print(reward_per_episode)
+    #print(reward_per_episode)
     env.close()
     sonic.save_model('sonic_model_final.h5')
        
 def validation(env):
     env = make_env(env)
+    env = Monitor(env, './video',force=True)
     sonic = SonicAgent(env,TIMESTEPS_PER_EPISODE* EPISODES, True)
-    sonic.load_model('models/650_sonic_model.h5')
+    sonic.load_model('sonic_model_final.h5')
     obs = env.reset()
     while True:
         action = sonic.policy(obs)
@@ -110,6 +117,11 @@ def validation(env):
 if __name__ == '__main__':
       loadEnv = LoadEnv('training-validation/sonic-train.csv',"training-validation/sonic-train.csv") 
       loadEnv.listMap()
-      for i in range(1, loadEnv.size_maps_training() - 1):
-          env = loadEnv.loadMap(i)
-          training(env)
+      env = loadEnv.loadMap(4)
+      validation(env)
+      
+#      for i in range(4, loadEnv.size_maps_training() - 1):
+#          print("Mapa #{} Comienza...".format(i))
+#          env = loadEnv.loadMap(i)
+#          validation(env)
+#          print("Mapa #{} Finaliza...".format(i))

@@ -28,7 +28,7 @@ if __name__ == "__main__":
     STEPS_PER_EPISODE = 300
     linear_schedule = LinearDecaySchedule( epsilon_initial,
                                            epsilon_final, 
-                                           0.5* MAX_NUM_EPISODES * STEPS_PER_EPISODE)
+                                           0.8* MAX_NUM_EPISODES * STEPS_PER_EPISODE)
     
     epsilons = [linear_schedule(step) for step in range(MAX_NUM_EPISODES * STEPS_PER_EPISODE)]
     plt.plot(epsilons)
