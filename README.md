@@ -13,7 +13,7 @@ python -m retro.import.sega_classics
 
 git clone --recursive https://github.com/openai/retro-contest.git
 
-pip install -e 
+pip install -e "retro-contest/support[docker,rest]" 
 ~~~
 
 También necesitaremos las BaseLines de open IA
