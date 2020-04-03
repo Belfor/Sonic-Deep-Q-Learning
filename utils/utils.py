@@ -6,11 +6,12 @@ Environments and wrappers for Sonic training.
 
 import gym
 import numpy as np
+import random
 
 from baselines.common.atari_wrappers import WarpFrame, FrameStack
 
 
-def make_env(env,stack=True, scale_rew=True):
+def make_env(env,stack=True, scale_rew=True, noop_rest=True):
     """
     Create an environment with some standard wrappers.
     """
@@ -20,6 +21,8 @@ def make_env(env,stack=True, scale_rew=True):
     env = WarpFrame(env)
     if stack:
         env = FrameStack(env, 4)
+    if noop_rest:
+        env = NoopResetEnv(env)
     return AllowBacktracking(env)
 
 class SonicDiscretizer(gym.ActionWrapper):
@@ -75,3 +78,22 @@ class AllowBacktracking(gym.Wrapper):
         rew = max(0, self._cur_x - self._max_x)
         self._max_x = max(self._max_x, self._cur_x)
         return obs, rew, done, info
+
+class NoopResetEnv(gym.Wrapper):
+    def __init__(self, env, noop_max = 30):
+        gym.Wrapper.__init__(self, env)
+        self.noop_max = noop_max
+        self.noop_action = 4
+    
+        
+    def reset(self):
+        self.env.reset()
+        noops = random.randrange(1, self.noop_max +1)
+        assert noops > 0
+        observation = None
+        for _ in range(noops):
+            observation, _, done, _ = self.env.step(self.noop_action)
+        return observation
+    
+    def step(self, action):
+        return self.env.step(action)

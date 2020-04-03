@@ -6,69 +6,25 @@ Created on Fri Feb 21 21:34:32 2020
 @author: belfor
 """
 
-
-import random
-import csv
+import json
 from SonicAgent import SonicAgent
 from utils.utils import make_env
+from utils.levelManager import LevelManager
 from retro_contest.local import make
 from pathlib import Path
 from gym.wrappers import Monitor
+from LinearDecaySchedule import LinearDecaySchedule
 
 TIMESTEPS_PER_EPISODE = 4500
 EPISODES = 100
 
-class LoadEnv():
-    
-    def __init__(self,training_file, validation_file):
-    
-        self.training = self.readFile(training_file)
-        self.validation = self.readFile(validation_file)
-    
-    def readFile(self,file):
-        env = []
-        file =  open(file)
-        reader = csv.reader(file,delimiter=',')
-        for row in reader:
-            env.append(row)
-        return env
-    
-    def size_maps_training(self):
-        return len(self.training)
-    
-    def listMap(self, training = True):
-        if(training):
-            for i in range(1,len(self.training) -1):
-                print("{} -> {} - {}".format(i,self.training[i][0],self.training[i][1]))
-        else:
-            for i in range(1,len(self.validation) -1):
-                print("{} -> {} - {}".format(i,self.validation[i][0],self.validation[i][1]))
-    def loadMap(self,level,training = True):
-        if(training):
-            return self.loadEnv(self.training[level][0],self.training[level][1])
-        
-        return self.loadEnv(self.validation[level][0],self.validation[level][1])
-    
-    def loadRandomEnv(self, test = None):
-        if not test:
-            rnd = random.randint(1,len(self.training) - 1)
-        else:
-            rnd = random.randint(1,len(self.validation) - 1)
-        return make(self.training[rnd][0],self.training[rnd][1])
-        
-    def loadEnv(self,level,state):
-        return make(level,state)
-
-def training(env):
+def training(env, sonic):
     
     total_reward = 0.0
-    reward_per_episode = []
-    env = make_env(env)
-
-    sonic = SonicAgent(env,TIMESTEPS_PER_EPISODE * EPISODES)
-    file = Path('sonic_model_final.h5')
+   
+    file = Path('models/sonic_model_final.h5')
     if file.is_file():
-        sonic.load_model('sonic_model_final.h5')
+        sonic.load_model('models/sonic_model_final.h5')
     
     obs = env.reset()
     for episodes in range(EPISODES):
@@ -78,35 +34,30 @@ def training(env):
             action = sonic.policy(obs)
             next_obs, reward, done, info = env.step(action)
             sonic.save_memory(obs,action,reward,next_obs,done)
+            
             if (len(sonic.memory) > sonic.batch_size):
                 sonic.replay_and_learn()
-            total_reward += reward
-           
+            
+            total_reward += reward           
             obs = next_obs
-            if done:
-                break
+
             
         if episodes % 50 == 0:
             sonic.save_model('models/' + str(episodes) + '_sonic_model.h5')
-        reward_per_episode.append(total_reward)
         sonic.update_target_model()
         print("Episodio #{} finalizado con recompensa {}".format(episodes + 1, total_reward))
         obs = env.reset()
         total_reward = 0.0
         
-    #print(reward_per_episode)
     env.close()
-    sonic.save_model('sonic_model_final.h5')
+    sonic.save_model('models/sonic_model_final.h5')
        
-def validation(env):
-    env = make_env(env)
+def validation(env, sonic):
     env = Monitor(env, './video',force=True)
-    sonic = SonicAgent(env,TIMESTEPS_PER_EPISODE* EPISODES, True)
     sonic.load_model('sonic_model_final.h5')
     obs = env.reset()
     while True:
         action = sonic.policy(obs)
-        #action = random.choice([a for a in range(env.action_space.n)])
         next_obs, reward, done, info = env.step(action)
         print("Para la accion #{} la recompensa es {}".format(action, reward))
         env.render()
@@ -115,13 +66,39 @@ def validation(env):
             obs = env.close()
             
 if __name__ == '__main__':
-      loadEnv = LoadEnv('training-validation/sonic-train.csv',"training-validation/sonic-train.csv") 
-      loadEnv.listMap()
-      env = loadEnv.loadMap(4)
-      validation(env)
+    
+    parameter = json.load(open("sonic.json", 'r'))
+    agent = parameter["agent"]
+    enviroment = parameter["enviroment"]
+    
+    levelManager = LevelManager('training-validation/sonic-train.csv',"training-validation/sonic-train.csv") 
+    levelManager.listMap()
+    levels = []
+    if (enviroment["all_maps"] == False):
+        levels = enviroment["selected_maps"]
+    else:
+        levels = [0..levelManager.size_maps_training() - 1]
+    
+    max_steps = agent["steps_episode"] * agent["episodes"] * len(levels)
+    epsilon_initial = agent["epsilon_max"]
+    epsilon_final = agent["epsilon_min"]
+    max_num_episodes =agent["episodes"]
+    setps_per_episode = agent["steps_episode"]
+    linear_schedule = LinearDecaySchedule( epsilon_initial,
+                                           epsilon_final, 
+                                           len(levels) * max_num_episodes * setps_per_episode)
+    sonic = SonicAgent(linear_schedule,enviroment["training"])
       
-#      for i in range(4, loadEnv.size_maps_training() - 1):
-#          print("Mapa #{} Comienza...".format(i))
-#          env = loadEnv.loadMap(i)
-#          validation(env)
-#          print("Mapa #{} Finaliza...".format(i))
+    for i in levels:
+        print("Mapa #{} Comienza...".format(i))
+        level = levelManager.getMap(i)
+        env = make(level[0],level[1])
+        
+        print(env.action_space)
+        if (enviroment["training"]):
+            env = make_env(env)
+            training(env,sonic)
+        else:
+            env = make_env(env, noop_rest=False)
+            validation(env,sonic)
+        print("Mapa #{} Finaliza...".format(i))

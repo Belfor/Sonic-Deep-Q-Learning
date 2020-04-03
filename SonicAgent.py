@@ -3,15 +3,17 @@
 import tensorflow as tf
 import numpy as np
 import keras
-import random
+import json
+import random 
+import gym
 from collections import deque
 from keras.models import Model
 from keras.layers import Dense,Flatten,Conv2D,Input
 from keras.callbacks import TensorBoard
-from LinearDecaySchedule import LinearDecaySchedule
+
 
 class SonicAgent():
-    def __init__(self,env,max_steps,test = None):      
+    def __init__(self,epsilon_decay,test = None):      
         gpus = tf.config.experimental.list_physical_devices('GPU')
         if gpus:
             try:
@@ -23,23 +25,27 @@ class SonicAgent():
             except RuntimeError as e:
                 # Memory growth must be set before GPUs have been initialized
                 print(e)
-        self.actions_shape = env.action_space.n      
-        self.observation_shape = env.observation_space.shape
+        
         self.num_step = 0
-        self.lr = 0.0001
-        self.gamma = 0.99
-        self.epsilon_decay = LinearDecaySchedule(1.0, 0.1, max_steps)
+        parameter = json.load(open("sonic.json", 'r'))
+       
+        self.n_actions = parameter["agent"]["n_actions"]     
+        self.observation_shape = tuple(parameter["enviroment"]["shape"])   
+        self.lr =  parameter["agent"]["learning_rate"]  
+        self.gamma = parameter["agent"]["gamma"]  
+        self.memory = deque(maxlen = parameter["agent"]["max_memory"] )
+        self.batch_size = parameter["agent"]["batch_size"]  
+        
+        self.epsilon_decay = epsilon_decay
+          
         self.test = test
         
-        self.batch_size = 128
-        self.memory = deque(maxlen = 50000)
-        
-        self.model = self.getModel(env.observation_space.shape,env.action_space.n)
-        self.target_model = self.getModel(env.observation_space.shape,env.action_space.n)
+        self.model = self.getModel(self.observation_shape ,self.n_actions)
+        self.target_model = self.getModel(self.observation_shape ,self.n_actions)
         self.target_model.trainable = False
         self.model.summary()
-        self.model.compile(loss=keras.losses.mean_squared_error,optimizer=keras.optimizers.Adam(learning_rate=self.lr),metrics=["accuracy"])
-        self.target_model.compile(loss=keras.losses.mean_squared_error,optimizer=keras.optimizers.Adam(learning_rate=self.lr),metrics=["accuracy"])
+        self.model.compile(loss=keras.losses.mean_squared_error,optimizer=keras.optimizers.Adam(lr=self.lr),metrics=["accuracy"])
+        self.target_model.compile(loss=keras.losses.mean_squared_error,optimizer=keras.optimizers.Adam(lr=self.lr),metrics=["accuracy"])
         #self.tensorboard = TensorBoard(log_dir="logs/sonic")
         #self.tensorboard.set_model(self.model)
     def getModel(self,input_shape,output_shape):
@@ -60,7 +66,7 @@ class SonicAgent():
         obs = obs[np.newaxis,:]
         self.num_step += 1
         if np.random.random() < self.epsilon_decay(self.num_step) and not self.test:
-            action = random.choice([a for a in range(self.actions_shape)])
+            action = random.randint(0,self.n_action)
         else:
             action = np.argmax(self.model.predict(obs))
         return action
@@ -72,7 +78,7 @@ class SonicAgent():
         mini_batch = random.sample(self.memory, self.batch_size)
         
         inputs = np.zeros(((self.batch_size,) + self.observation_shape))
-        targets = np.zeros((self.batch_size,self.actions_shape))
+        targets = np.zeros((self.batch_size, self.n_actions))
         
         for i in range (self.batch_size):
             obs, action, reward, next_obs, done = mini_batch[i]
@@ -91,7 +97,6 @@ class SonicAgent():
         else:
             return reward + self.gamma * np.argmax(self.target_model.predict(next_obs)[0])
        
-        #self.model.fit(obs,y=td_target,epochs=1,verbose=0)
               
     def save_model(self,filename):
         self.model.save_weights(filename)
