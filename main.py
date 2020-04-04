@@ -15,8 +15,9 @@ from pathlib import Path
 from gym.wrappers import Monitor
 from LinearDecaySchedule import LinearDecaySchedule
 
-TIMESTEPS_PER_EPISODE = 4500
-EPISODES = 100
+parameter = json.load(open("sonic.json", 'r'))
+agent = parameter["agent"]
+enviroment = parameter["enviroment"]
 
 def training(env, sonic):
     
@@ -25,17 +26,18 @@ def training(env, sonic):
     file = Path('models/sonic_model_final.h5')
     if file.is_file():
         sonic.load_model('models/sonic_model_final.h5')
-    
+
     obs = env.reset()
-    for episodes in range(EPISODES):
+    for episodes in range(agent["episodes"]):
         done = False
         print("Empieza Episodio #{}".format(episodes + 1))
         while not done:
             action = sonic.policy(obs)
             next_obs, reward, done, info = env.step(action)
             sonic.save_memory(obs,action,reward,next_obs,done)
-            
-            if (len(sonic.memory) > sonic.batch_size):
+            if enviroment["render"]:
+                env.render()
+            if (len(sonic.memory) > agent["batch_replay"]):
                 sonic.replay_and_learn()
             
             total_reward += reward           
@@ -67,9 +69,6 @@ def validation(env, sonic):
             
 if __name__ == '__main__':
     
-    parameter = json.load(open("sonic.json", 'r'))
-    agent = parameter["agent"]
-    enviroment = parameter["enviroment"]
     
     levelManager = LevelManager('training-validation/sonic-train.csv',"training-validation/sonic-train.csv") 
     levelManager.listMap()
@@ -93,10 +92,10 @@ if __name__ == '__main__':
         print("Mapa #{} Comienza...".format(i))
         level = levelManager.getMap(i)
         env = make(level[0],level[1])
-        
-        print(env.action_space)
+
         if (enviroment["training"]):
             env = make_env(env)
+            print(env.action_space)
             training(env,sonic)
         else:
             env = make_env(env, noop_rest=False)

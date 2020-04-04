@@ -13,7 +13,7 @@ from keras.callbacks import TensorBoard
 
 
 class SonicAgent():
-    def __init__(self,epsilon_decay,test = None):      
+    def __init__(self,epsilon_decay,training = False):      
         gpus = tf.config.experimental.list_physical_devices('GPU')
         if gpus:
             try:
@@ -38,7 +38,7 @@ class SonicAgent():
         
         self.epsilon_decay = epsilon_decay
           
-        self.test = test
+        self.training = training
         
         self.model = self.getModel(self.observation_shape ,self.n_actions)
         self.target_model = self.getModel(self.observation_shape ,self.n_actions)
@@ -65,8 +65,8 @@ class SonicAgent():
     def policy(self, obs):
         obs = obs[np.newaxis,:]
         self.num_step += 1
-        if np.random.random() < self.epsilon_decay(self.num_step) and not self.test:
-            action = random.randint(0,self.n_action)
+        if np.random.random() < self.epsilon_decay(self.num_step) and self.training:
+            action = random.randint(0,self.n_actions - 1)
         else:
             action = np.argmax(self.model.predict(obs))
         return action

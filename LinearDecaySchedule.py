@@ -22,14 +22,28 @@ class LinearDecaySchedule():
     
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
-    epsilon_initial = 1.0
-    epsilon_final = 0.005
-    MAX_NUM_EPISODES = 10000
-    STEPS_PER_EPISODE = 300
+    import json
+    parameter = json.load(open("sonic.json", 'r'))
+  
+    agent = parameter["agent"]
+    enviroment = parameter["enviroment"]
+    
+    if (enviroment["all_maps"] == False):
+        levels = enviroment["selected_maps"]
+    else:
+        levels = [0..levelManager.size_maps_training() - 1]
+    
+  
+    epsilon_initial = agent["epsilon_max"]
+    epsilon_final = agent["epsilon_min"]
+    max_num_episodes =agent["episodes"]
+    setps_per_episode = agent["steps_episode"]
+    
+    print(len(levels))
     linear_schedule = LinearDecaySchedule( epsilon_initial,
                                            epsilon_final, 
-                                           0.8* MAX_NUM_EPISODES * STEPS_PER_EPISODE)
+                                           len(levels) * max_num_episodes * setps_per_episode)
     
-    epsilons = [linear_schedule(step) for step in range(MAX_NUM_EPISODES * STEPS_PER_EPISODE)]
+    epsilons = [linear_schedule(step) for step in range(len(levels) * max_num_episodes * setps_per_episode)]
     plt.plot(epsilons)
     plt.show()
