@@ -15,17 +15,19 @@ from pathlib import Path
 from gym.wrappers import Monitor
 from LinearDecaySchedule import LinearDecaySchedule
 
+from tensorboardX import SummaryWriter
+
 parameter = json.load(open("sonic.json", 'r'))
 agent = parameter["agent"]
 enviroment = parameter["enviroment"]
 
-def training(env, sonic):
+writer = SummaryWriter(agent["logs"])
+
+def training(env, sonic,global_step_num):
     
     total_reward = 0.0
-   
-    file = Path('models/sonic_model_final.h5')
-    if file.is_file():
-        sonic.load_model('models/sonic_model_final.h5')
+    sonic.createModel(env,'sonic_model_final.h5')
+    
 
     obs = env.reset()
     for episodes in range(agent["episodes"]):
@@ -33,43 +35,55 @@ def training(env, sonic):
         print("Empieza Episodio #{}".format(episodes + 1))
         while not done:
             action = sonic.policy(obs)
+            writer.add_scalar("epsilon", sonic.epsilon_decay(sonic.num_step),sonic.num_step)
             next_obs, reward, done, info = env.step(action)
             sonic.save_memory(obs,action,reward,next_obs,done)
+            
+                        
+            obs = next_obs
+            total_reward += reward        
+            global_step_num += 1
+           
+            
             if enviroment["render"]:
                 env.render()
-            if (len(sonic.memory) > agent["batch_replay"]):
+            if len(sonic.memory) > 2 * agent["batch_replay"]:
                 sonic.replay_and_learn()
-            
-            total_reward += reward           
-            obs = next_obs
 
-            
-        if episodes % 50 == 0:
-            sonic.save_model('models/' + str(episodes) + '_sonic_model.h5')
+
         sonic.update_target_model()
+        if (total_reward > sonic.best_reward):
+            sonic.best_reward = total_reward
+            sonic.save_model('models/best_reward_sonic.h5')
+        # if episodes % 50 == 0:
+        #     sonic.save_model('models/' + str(episodes) + '_sonic_model.h5')
+       
         print("Episodio #{} finalizado con recompensa {}".format(episodes + 1, total_reward))
+        writer.add_scalar('ep_reward', total_reward, global_step_num)
         obs = env.reset()
         total_reward = 0.0
         
     env.close()
+    writer.close()
     sonic.save_model('models/sonic_model_final.h5')
        
 def validation(env, sonic):
     env = Monitor(env, './video',force=True)
     sonic.load_model('sonic_model_final.h5')
     obs = env.reset()
-    while True:
+    done = True
+    while done:
         action = sonic.policy(obs)
         next_obs, reward, done, info = env.step(action)
         print("Para la accion #{} la recompensa es {}".format(action, reward))
         env.render()
         obs = next_obs
-        if done:
-            obs = env.close()
-            
+    env.close()
+    
+    
 if __name__ == '__main__':
     
-    
+    global_step_num = 0
     levelManager = LevelManager('training-validation/sonic-train.csv',"training-validation/sonic-train.csv") 
     levelManager.listMap()
     levels = []
@@ -96,7 +110,7 @@ if __name__ == '__main__':
         if (enviroment["training"]):
             env = make_env(env)
             print(env.action_space)
-            training(env,sonic)
+            training(env,sonic,global_step_num)
         else:
             env = make_env(env, noop_rest=False)
             validation(env,sonic)

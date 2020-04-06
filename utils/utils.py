@@ -8,10 +8,10 @@ import gym
 import numpy as np
 import random
 
-from baselines.common.atari_wrappers import WarpFrame, FrameStack
+from baselines.common.atari_wrappers import WarpFrame, FrameStack, ClipRewardEnv
 
 
-def make_env(env,stack=True, scale_rew=True, noop_rest=True):
+def make_env(env,stack=True, scale_rew=True, noop_rest=True, clip_reward = False):
     """
     Create an environment with some standard wrappers.
     """
@@ -23,7 +23,11 @@ def make_env(env,stack=True, scale_rew=True, noop_rest=True):
         env = FrameStack(env, 4)
     if noop_rest:
         env = NoopResetEnv(env)
-    return AllowBacktracking(env)
+    if clip_reward:
+        env = ClipRewardEnv(env)
+    else:
+        env = AllowBacktracking(env)
+    return env
 
 class SonicDiscretizer(gym.ActionWrapper):
     """

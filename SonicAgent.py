@@ -6,6 +6,8 @@ import keras
 import json
 import random 
 import gym
+from pathlib import Path
+from DQN import DQN
 from collections import deque
 from keras.models import Model
 from keras.layers import Dense,Flatten,Conv2D,Input
@@ -27,10 +29,9 @@ class SonicAgent():
                 print(e)
         
         self.num_step = 0
+        self.best_reward = 0;
         parameter = json.load(open("sonic.json", 'r'))
        
-        self.n_actions = parameter["agent"]["n_actions"]     
-        self.observation_shape = tuple(parameter["enviroment"]["shape"])   
         self.lr =  parameter["agent"]["learning_rate"]  
         self.gamma = parameter["agent"]["gamma"]  
         self.memory = deque(maxlen = parameter["agent"]["max_memory"] )
@@ -39,26 +40,29 @@ class SonicAgent():
         self.epsilon_decay = epsilon_decay
           
         self.training = training
+        self.path_model =parameter["agent"]["models"] 
         
-        self.model = self.getModel(self.observation_shape ,self.n_actions)
-        self.target_model = self.getModel(self.observation_shape ,self.n_actions)
+       
+        
+    def createModel(self,env,file_name_h5 = None):
+        self.action_space = env.action_space    
+        self.observation_shape =  env.observation_space.shape   
+        
+        dqn = DQN(self.observation_shape, self.action_space.n)
+        
+        self.model = dqn.createModel()
+        self.target_model = dqn.createModel()
         self.target_model.trainable = False
         self.model.summary()
         self.model.compile(loss=keras.losses.mean_squared_error,optimizer=keras.optimizers.Adam(lr=self.lr),metrics=["accuracy"])
         self.target_model.compile(loss=keras.losses.mean_squared_error,optimizer=keras.optimizers.Adam(lr=self.lr),metrics=["accuracy"])
-        #self.tensorboard = TensorBoard(log_dir="logs/sonic")
-        #self.tensorboard.set_model(self.model)
-    def getModel(self,input_shape,output_shape):
-        inputs = Input(input_shape)
-        x = Conv2D(32,kernel_size = (8,8),strides = (4,4),padding = 'valid',activation='relu')(inputs)
-        x = Conv2D(64,kernel_size = (4,4),strides = (2,2),activation='relu')(x)
-        x = Conv2D(128,kernel_size = (4,4),strides = (2,2),activation='relu')(x)
-        x = Flatten()(x)
-        x = Dense(512,activation='relu')(x)
-        x = Dense(output_shape,activation='linear')(x)
        
-        return Model(inputs=inputs,outputs=x)
-     
+        file = Path(self.path_model + file_name_h5)
+        
+        if file.is_file():
+            sonic.load_model(self.path_model + file_name_h5)
+                
+                
     def update_target_model(self):
         self.target_model.set_weights(self.model.get_weights())
         
@@ -66,7 +70,7 @@ class SonicAgent():
         obs = obs[np.newaxis,:]
         self.num_step += 1
         if np.random.random() < self.epsilon_decay(self.num_step) and self.training:
-            action = random.randint(0,self.n_actions - 1)
+            action = random.choice([a for a in range(self.action_space.n)])
         else:
             action = np.argmax(self.model.predict(obs))
         return action
@@ -78,7 +82,7 @@ class SonicAgent():
         mini_batch = random.sample(self.memory, self.batch_size)
         
         inputs = np.zeros(((self.batch_size,) + self.observation_shape))
-        targets = np.zeros((self.batch_size, self.n_actions))
+        targets = np.zeros((self.batch_size, self.action_space.n))
         
         for i in range (self.batch_size):
             obs, action, reward, next_obs, done = mini_batch[i]
@@ -100,6 +104,7 @@ class SonicAgent():
               
     def save_model(self,filename):
         self.model.save_weights(filename)
+        self.update_target_model(self)
         
     def load_model(self,filename):
         self.model.load_weights(filename)

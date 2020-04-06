@@ -11,12 +11,11 @@
         "epsilon_min": 0.1,
         "logs" :"logs/",
         "models": "models/",
-        "n_actions" : 7
+        "only_reward_postive" : true
     },
     "enviroment" :{
         "render" : false,
         "training" : true,
-        "shape": [84,84,4],
         "all_maps" : false,
         "selected_maps" : [4]
     }
