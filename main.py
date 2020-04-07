@@ -69,10 +69,10 @@ def training(env, sonic,global_step_num):
        
 def validation(env, sonic):
     env = Monitor(env, './video',force=True)
-    sonic.load_model('sonic_model_final.h5')
+    sonic.createModel(env,'best_reward_sonic.h5')
     obs = env.reset()
-    done = True
-    while done:
+    done = False
+    while not done:
         action = sonic.policy(obs)
         next_obs, reward, done, info = env.step(action)
         print("Para la accion #{} la recompensa es {}".format(action, reward))
