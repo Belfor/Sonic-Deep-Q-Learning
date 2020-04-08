@@ -6,6 +6,7 @@ Created on Mon Apr  6 17:42:13 2020
 """
 from keras.models import Model
 from keras.layers import Dense,Flatten,Conv2D,Input
+from keras import backend as tf
 
 class DQN:
     

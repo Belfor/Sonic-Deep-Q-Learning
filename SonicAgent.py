@@ -1,33 +1,35 @@
 # -*- coding: utf-8 -*-
 
-import tensorflow as tf
+#import tensorflow as tf
 import numpy as np
-import keras
+
 import json
 import random 
-import gym
+import keras
 from pathlib import Path
 from DQN import DQN
 from collections import deque
-from keras.models import Model
-from keras.layers import Dense,Flatten,Conv2D,Input
-from keras.callbacks import TensorBoard
+from keras import backend as k
+import tensorflow as tf
+
+
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+    try:
+        # Currently, memory growth needs to be the same across GPUs
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+        logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+        print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+    except RuntimeError as e:
+        # Memory growth must be set before GPUs have been initialized
+        print(e)
+
 
 
 class SonicAgent():
     def __init__(self,epsilon_decay,training = False):      
-        gpus = tf.config.experimental.list_physical_devices('GPU')
-        if gpus:
-            try:
-                # Currently, memory growth needs to be the same across GPUs
-                for gpu in gpus:
-                    tf.config.experimental.set_memory_growth(gpu, True)
-                logical_gpus = tf.config.experimental.list_logical_devices('GPU')
-                print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
-            except RuntimeError as e:
-                # Memory growth must be set before GPUs have been initialized
-                print(e)
-        
+           
         self.num_step = 0
         self.best_reward = 0;
         parameter = json.load(open("sonic.json", 'r'))
@@ -42,14 +44,13 @@ class SonicAgent():
         self.training = training
         self.path_model =parameter["agent"]["models"] 
         
-       
         
     def createModel(self,env,file_name_h5 = None):
         self.action_space = env.action_space    
         self.observation_shape =  env.observation_space.shape   
-        
+
         dqn = DQN(self.observation_shape, self.action_space.n)
-        
+            
         self.model = dqn.createModel()
         self.target_model = dqn.createModel()
         self.target_model.trainable = False
@@ -60,7 +61,7 @@ class SonicAgent():
         file = Path(self.path_model + file_name_h5)
         
         if file.is_file():
-            sonic.load_model(self.path_model + file_name_h5)
+            self.load_model(self.path_model + file_name_h5)
                 
                 
     def update_target_model(self):
@@ -69,6 +70,7 @@ class SonicAgent():
     def policy(self, obs):
         obs = obs[np.newaxis,:]
         self.num_step += 1
+      
         if np.random.random() < self.epsilon_decay(self.num_step) and self.training:
             action = random.choice([a for a in range(self.action_space.n)])
         else:
@@ -79,8 +81,8 @@ class SonicAgent():
         self.memory.append((obs, action, reward, next_obs, done))
        
     def replay_and_learn(self):
+       
         mini_batch = random.sample(self.memory, self.batch_size)
-        
         inputs = np.zeros(((self.batch_size,) + self.observation_shape))
         targets = np.zeros((self.batch_size, self.action_space.n))
         
@@ -104,7 +106,8 @@ class SonicAgent():
               
     def save_model(self,filename):
         self.model.save_weights(filename)
-        self.update_target_model(self)
+      
         
     def load_model(self,filename):
         self.model.load_weights(filename)
+        self.update_target_model(self)
