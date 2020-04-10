@@ -60,7 +60,7 @@ class SonicAgent():
         file = Path(self.path_model + file_name_h5)
         
         if file.is_file():
-            sonic.load_model(self.path_model + file_name_h5)
+            self.load_model(self.path_model + file_name_h5)
                 
                 
     def update_target_model(self):
@@ -104,7 +104,8 @@ class SonicAgent():
               
     def save_model(self,filename):
         self.model.save_weights(filename)
-        self.update_target_model(self)
+     
         
     def load_model(self,filename):
         self.model.load_weights(filename)
+        self.update_target_model()

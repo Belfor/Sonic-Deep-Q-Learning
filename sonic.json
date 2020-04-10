@@ -15,7 +15,7 @@
     },
     "enviroment" :{
         "render" : false,
-        "training" : true,
+        "training" : false,
         "all_maps" : false,
         "selected_maps" : [4]
     }
