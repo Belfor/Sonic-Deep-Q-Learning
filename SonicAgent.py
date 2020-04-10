@@ -110,4 +110,4 @@ class SonicAgent():
         
     def load_model(self,filename):
         self.model.load_weights(filename)
-        self.update_target_model(self)
+        self.update_target_model()
