@@ -11,7 +11,7 @@ import random
 from baselines.common.atari_wrappers import WarpFrame, FrameStack, ClipRewardEnv
 
 
-def make_env(env,stack=True, scale_rew=True, noop_rest=True, clip_reward = False):
+def make_env(env,stack=True, scale_rew=True, noop_rest=False, clip_reward = False):
     """
     Create an environment with some standard wrappers.
     """

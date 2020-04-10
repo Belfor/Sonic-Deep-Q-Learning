@@ -71,6 +71,7 @@ def training(env, sonic,global_step_num):
 def validation(env, sonic):
     env = Monitor(env, './video',force=True)
     sonic.createModel(env,'best_reward_sonic.h5')
+
     obs = env.reset()
     done = False
     while not done:
