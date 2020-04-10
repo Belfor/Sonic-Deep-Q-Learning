@@ -106,8 +106,9 @@ class SonicAgent():
               
     def save_model(self,filename):
         self.model.save_weights(filename)
-      
+    
         
     def load_model(self,filename):
         self.model.load_weights(filename)
         self.update_target_model()
+

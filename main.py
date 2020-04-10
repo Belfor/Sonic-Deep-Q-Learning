@@ -64,12 +64,14 @@ def training(env, sonic,global_step_num):
         total_reward = 0.0
         
     env.close()
-    writer.close()
     sonic.save_model('models/sonic_model_final.h5')
+    writer.close()
+    
        
 def validation(env, sonic):
     env = Monitor(env, './video',force=True)
-    sonic.createModel(env,'sonic_model_final.h5')
+    sonic.createModel(env,'best_reward_sonic.h5')
+
     obs = env.reset()
     done = False
     while not done:
