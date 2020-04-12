@@ -74,7 +74,7 @@ class SonicAgent():
         if np.random.random() < self.epsilon_decay(self.num_step) and self.training:
             action = random.choice([a for a in range(self.action_space.n)])
         else:
-            action = np.argmax(self.model.predict(obs))
+            action = np.argmax(self.model.predict(obs)[0])
         return action
     
     def save_memory(self, obs, action, reward, next_obs, done):

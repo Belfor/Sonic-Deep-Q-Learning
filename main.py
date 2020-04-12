@@ -101,7 +101,7 @@ if __name__ == '__main__':
     setps_per_episode = agent["steps_episode"]
     linear_schedule = LinearDecaySchedule( epsilon_initial,
                                            epsilon_final, 
-                                           len(levels) * max_num_episodes * setps_per_episode)
+                                           len(levels) * max_num_episodes * setps_per_episode * 0.7)
     sonic = SonicAgent(linear_schedule,enviroment["training"])
       
     for i in levels:

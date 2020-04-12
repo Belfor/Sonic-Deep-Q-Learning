@@ -1,12 +1,12 @@
 {
     "agent" :{
-        "episodes": 150,
+        "episodes": 100,
         "steps_episode": 4500,
         "learning_rate": 0.0001,
         "gamma": 0.99,
         "max_memory": 50000,
         "batch_size": 128,
-        "batch_replay": 128,
+        "batch_replay": 64,
         "epsilon_max": 1.0,
         "epsilon_min": 0.1,
         "logs" :"logs/",
@@ -15,7 +15,7 @@
     },
     "enviroment" :{
         "render" : false,
-        "training" : false,
+        "training" : true,
         "all_maps" : false,
         "selected_maps" : [4]
     }
