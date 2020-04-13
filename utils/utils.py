@@ -23,10 +23,10 @@ def make_env(env,stack=True, scale_rew=True, noop_rest=False, clip_reward = Fals
         env = FrameStack(env, 4)
     if noop_rest:
         env = NoopResetEnv(env)
-    if clip_reward:
-        env = ClipRewardEnv(env)
-    else:
-        env = AllowBacktracking(env)
+#    if clip_reward:
+#        env = ClipRewardEnv(env)
+#    else:
+#        env = AllowBacktracking(env)
     return env
 
 class SonicDiscretizer(gym.ActionWrapper):

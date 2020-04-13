@@ -28,53 +28,47 @@ if gpus:
 
 
 class SonicAgent():
-    def __init__(self,epsilon_decay,training = False):      
+    def __init__(self,training = False):      
            
-        self.num_step = 0
-        self.best_reward = 0;
-        parameter = json.load(open("sonic.json", 'r'))
+        parameter = json.load(open('sonic.json', 'r'))
        
         self.lr =  parameter["agent"]["learning_rate"]  
         self.gamma = parameter["agent"]["gamma"]  
         self.memory = deque(maxlen = parameter["agent"]["max_memory"] )
         self.batch_size = parameter["agent"]["batch_size"]  
-        
-        self.epsilon_decay = epsilon_decay
-          
+                  
         self.training = training
-        self.path_model =parameter["agent"]["models"] 
+        self.path_model=parameter["agent"]["models"] 
         
         
     def createModel(self,env,file_name_h5 = None):
         self.action_space = env.action_space    
         self.observation_shape =  env.observation_space.shape   
 
-        dqn = DQN(self.observation_shape, self.action_space.n)
-            
+        dqn = DQN(self.observation_shape, self.action_space.n, self.lr)
+           
         self.model = dqn.createModel()
         self.target_model = dqn.createModel()
-        self.target_model.trainable = False
-        self.model.summary()
-        self.model.compile(loss=keras.losses.mean_squared_error,optimizer=keras.optimizers.Adam(lr=self.lr),metrics=["accuracy"])
-        self.target_model.compile(loss=keras.losses.mean_squared_error,optimizer=keras.optimizers.Adam(lr=self.lr),metrics=["accuracy"])
+      
        
-        file = Path(self.path_model + file_name_h5)
-        
-        if file.is_file():
-            self.load_model(self.path_model + file_name_h5)
+        if file_name_h5 != None:
+            file = Path(self.path_model + file_name_h5)
+            
+            if file.is_file():
+                self.load_model(self.path_model + file_name_h5)
                 
                 
     def update_target_model(self):
         self.target_model.set_weights(self.model.get_weights())
         
-    def policy(self, obs):
+    def policy(self, obs, epsilon = None):
         obs = obs[np.newaxis,:]
-        self.num_step += 1
       
-        if np.random.random() < self.epsilon_decay(self.num_step) and self.training:
+        if np.random.random() < epsilon and self.training:
             action = random.choice([a for a in range(self.action_space.n)])
         else:
             action = np.argmax(self.model.predict(obs))
+            
         return action
     
     def save_memory(self, obs, action, reward, next_obs, done):
@@ -106,8 +100,11 @@ class SonicAgent():
               
     def save_model(self,filename):
         self.model.save_weights(filename)
-    
+
+     
         
     def load_model(self,filename):
         self.model.load_weights(filename)
-        self.update_target_model(self)
+        self.update_target_model()
+
+
