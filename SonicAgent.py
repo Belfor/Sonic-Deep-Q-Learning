@@ -6,6 +6,7 @@ import numpy as np
 import json
 import random 
 import keras
+import sys
 from pathlib import Path
 from DQN import DQN
 from collections import deque
@@ -28,8 +29,11 @@ if gpus:
 
 
 class SonicAgent():
-    def __init__(self,epsilon_decay,training = False):      
-           
+    def __init__(self,epsilon_decay,training = False):    
+        seed = random.randrange(sys.maxsize)
+        random.Random(seed)
+        print("Seed was:", seed)
+        random.seed(30)
         self.num_step = 0
         self.best_reward = 0;
         parameter = json.load(open("sonic.json", 'r'))
@@ -99,7 +103,7 @@ class SonicAgent():
         next_obs = next_obs[np.newaxis,:]
        
         if done:
-            return reward 
+            return reward - 10
         else:
             return reward + self.gamma * np.argmax(self.target_model.predict(next_obs)[0])
        
