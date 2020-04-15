@@ -35,6 +35,7 @@ def training(env,sonic,global_step_num,epsilon_decay):
         obs = env.reset()
         done = False
         total_reward = 0.0
+        best_reward = 0.0
         steps = 0
         print("Empieza Episodio #{}".format(episodes + 1))
         while not done:
@@ -65,8 +66,14 @@ def training(env,sonic,global_step_num,epsilon_decay):
     
         global_step_num += steps_episode - steps
         
-        if (total_reward > sonic.best_reward):
-            sonic.best_reward = total_reward
+        if ((episodes % 50) == 0):
+            sonic.update_target_model()
+
+        if ((episodes % 50) == 0):
+            sonic.replay_and_learn()
+            
+        if (total_reward > best_reward):
+            best_reward = total_reward
             sonic.save_model('models/best_reward_sonic.h5')
    
        

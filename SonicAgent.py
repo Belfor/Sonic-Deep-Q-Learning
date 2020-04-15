@@ -95,7 +95,7 @@ class SonicAgent():
         if done:
             return reward 
         else:
-            return reward + self.gamma * np.argmax(self.target_model.predict(next_obs)[0])
+            return reward + self.gamma * np.amax(self.target_model.predict(next_obs)[0])
        
               
     def save_model(self,filename):
