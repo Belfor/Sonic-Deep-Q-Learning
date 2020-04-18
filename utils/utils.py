@@ -8,25 +8,25 @@ import gym
 import numpy as np
 import random
 
-from baselines.common.atari_wrappers import WarpFrame, FrameStack, ClipRewardEnv
+from baselines.common.atari_wrappers import WarpFrame, FrameStack, ClipRewardEnv, ScaledFloatFrame
 
 
-def make_env(env,stack=True, scale_rew=True, noop_rest=False, clip_reward = False):
+def make_env(env,stack=False, scale_rew=False, noop_rest=False, allow_backtracking = False):
     """
     Create an environment with some standard wrappers.
     """
     env = SonicDiscretizer(env)
+    env = WarpFrame(env)
+    
     if scale_rew:
         env = RewardScaler(env)
-    env = WarpFrame(env)
+  
     if stack:
         env = FrameStack(env, 4)
     if noop_rest:
         env = NoopResetEnv(env)
-#    if clip_reward:
-#        env = ClipRewardEnv(env)
-#    else:
-#        env = AllowBacktracking(env)
+    if allow_backtracking:
+        env = AllowBacktracking(env)
     return env
 
 class SonicDiscretizer(gym.ActionWrapper):

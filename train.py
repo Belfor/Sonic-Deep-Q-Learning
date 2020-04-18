@@ -7,6 +7,7 @@ Created on Mon Apr 13 10:02:19 2020
 """
 
 import json
+import numpy as np
 from SonicAgent import SonicAgent
 from utils.utils import make_env
 from utils.levelManager import LevelManager
@@ -24,6 +25,7 @@ steps_episode = agent["steps_episode"];
 writer = SummaryWriter(agent["logs"])
 update_target_freq = agent["update_target_freq"]
 timestep_per_train = agent["timestep_per_train"]
+max_num_episodes =agent["episodes"]
 
 def training(env,sonic,global_step_num,epsilon_decay):
     
@@ -31,7 +33,7 @@ def training(env,sonic,global_step_num,epsilon_decay):
     
     sonic.createModel(env,'sonic_model_final.h5')
      
-    for episodes in range(agent["episodes"]):
+    for episodes in range(max_num_episodes):
         obs = env.reset()
         done = False
         total_reward = 0.0
@@ -43,6 +45,7 @@ def training(env,sonic,global_step_num,epsilon_decay):
             writer.add_scalar("epsilon", epsilon_decay(global_step_num),global_step_num)
             
             next_obs, reward, done, info = env.step(action)
+            
             sonic.save_memory(obs,action,reward,next_obs,done)
                         
             obs = next_obs
@@ -101,10 +104,9 @@ if __name__ == '__main__':
     else:
         levels = [0..levelManager.size_maps_training() - 1]
     
-    max_steps = steps_episode * agent["episodes"] * len(levels)
     epsilon_initial = agent["epsilon_max"]
     epsilon_final = agent["epsilon_min"]
-    max_num_episodes =agent["episodes"]
+ 
     setps_per_episode = agent["steps_episode"]
     linear_schedule = LinearDecaySchedule( epsilon_initial,
                                            epsilon_final, 
@@ -116,7 +118,7 @@ if __name__ == '__main__':
         print("Mapa #{} Comienza...".format(i))
         level = levelManager.getMap(i)
         env = make(level[0],level[1])
-        env = make_env(env)
+        env = make_env(env,allow_backtracking=True)
         training(env,sonic,global_step_num,linear_schedule)
 
         print("Mapa #{} Finaliza...".format(i))
