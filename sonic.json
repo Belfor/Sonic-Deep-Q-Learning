@@ -1,13 +1,13 @@
 {
     "agent" :{
-        "episodes": 1000,
+        "episodes": 250,
         "steps_episode": 4500,
         "learning_rate": 0.0001,
         "gamma": 0.95,
         "max_memory": 50000,
         "batch_size": 64,
         "batch_replay": 1024,
-        "epsilon_max": 1.0,
+        "epsilon_max": 0.5,
         "epsilon_min": 0.1,
         "logs" :"logs/",
         "models": "models/",

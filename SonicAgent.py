@@ -61,7 +61,7 @@ class SonicAgent():
     def update_target_model(self):
         self.target_model.set_weights(self.model.get_weights())
         
-    def policy(self, obs, epsilon = None):
+    def policy(self, obs, epsilon = 0):
         obs = obs[np.newaxis,:]
       
         if np.random.random() < epsilon and self.training:

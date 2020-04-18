@@ -29,7 +29,7 @@ def training(env,sonic,global_step_num,epsilon_decay):
     
     total_reward = 0.0
     
-    sonic.createModel(env)
+    sonic.createModel(env,'sonic_model_final.h5')
      
     for episodes in range(agent["episodes"]):
         obs = env.reset()
