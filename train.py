@@ -70,10 +70,10 @@ def training(env,sonic,global_step_num,epsilon_decay):
         global_step_num += steps_episode - steps
         
 
-        if ((episodes % 50) == 0):
+        if ((episodes % 100) == 0):
             sonic.update_target_model()
 
-        if ((episodes % 50) == 0):
+        if ((episodes % 100) == 0):
             sonic.replay_and_learn()
             
         if (total_reward > best_reward):
