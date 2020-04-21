@@ -4,19 +4,17 @@
         "steps_episode": 4500,
         "learning_rate": 0.0001,
         "gamma": 0.95,
-        "max_memory": 50000,
+        "max_memory": 5000,
         "batch_size": 64,
         "batch_replay": 1024,
-        "epsilon_max": 1.0,
-        "epsilon_min": 0.1,
+        "n_step":4,
         "logs" :"logs/",
         "models": "models/",
-        "only_reward_postive" : true,
         "update_target_freq" : 10000, 
         "timestep_per_train" : 2000
     },
     "enviroment" :{
-        "render" : false,
+        "render" : true,
         "all_maps" : false,
         "selected_maps" : [4]
     }
