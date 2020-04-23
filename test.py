@@ -13,7 +13,7 @@ from utils.levelManager import LevelManager
 from retro_contest.local import make
 from gym.wrappers import Monitor
 
-
+from utils.LinearDecaySchedule import LinearDecaySchedule
 
 parameter = json.load(open('sonic.json', 'r'))
 agent = parameter["agent"]

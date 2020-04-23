@@ -14,7 +14,7 @@ from utils.utils import make_env
 from utils.levelManager import LevelManager
 from retro_contest.local import make
 
-
+from utils.LinearDecaySchedule import LinearDecaySchedule
 from tensorboardX import SummaryWriter
 
 parameter = json.load(open('sonic.json', 'r'))
@@ -33,7 +33,7 @@ n_step_rewards = deque(maxlen=n_step)
 n_step_exp = deque(maxlen=n_step)
 
 def training(env,sonic,global_step_num):
-    
+    epsilon = LinearDecaySchedule(1,0.1,max_num_episodes * steps_episode)
     total_reward = 0.0
     
     sonic.createModel(env)
@@ -48,7 +48,7 @@ def training(env,sonic,global_step_num):
         steps = 0
         print("Empieza Episodio #{}".format(episodes + 1))
         while not done:
-            action = sonic.get_action(obs)      
+            action = sonic.get_action(obs, epsilon(global_step_num))      
             next_obs, reward, done, _ = env.step(action)
 
             n_step_rewards.appendleft(reward)

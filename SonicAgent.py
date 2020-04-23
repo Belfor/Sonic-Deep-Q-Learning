@@ -15,6 +15,7 @@ import tensorflow as tf
 from PriorityExperienceMemory import PriorityExperienceMemory
 
 
+
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
     try:
@@ -36,13 +37,13 @@ class SonicAgent():
        
         self.lr =  parameter["agent"]["learning_rate"]  
         self.gamma = parameter["agent"]["gamma"]  
-        self.memory = PriorityExperienceMemory(parameter["agent"]["max_memory"])
+        self.memory = PriorityEx    perienceMemory(parameter["agent"]["max_memory"])
       
         self.batch_size = parameter["agent"]["batch_size"]  
                   
         self.training = training
         self.path_model=parameter["agent"]["models"] 
-        
+  
         # Number of future states used to form memories in n-step dqn 
         self.n_step = parameter["agent"]["n_step"] 
 
@@ -74,17 +75,20 @@ class SonicAgent():
     def update_target_model(self):
         self.target_model.set_weights(self.model.get_weights())
         
-    def get_action(self, obs):
+    def get_action(self, obs,epsilon):
         obs = obs[np.newaxis,:]
-        action_distributions = self.model.predict(obs)
+        if (np.random.rand() <= epsilon)_
+            action = random.randrange(self.action_size)
+        else:
+            action_distributions = self.model.predict(obs)
 
-        weighted_dists = np.multiply(np.vstack(action_distributions), np.array(self.z))
-        
-        # Sum the weighted values from each distribution and find the one with 
-        # the largest expected value.
-        avg_dist_values = np.sum(weighted_dists, axis=1)
-        print(avg_dist_values);
-        action = np.argmax(avg_dist_values)
+            weighted_dists = np.multiply(np.vstack(action_distributions), np.array(self.z))
+            
+            # Sum the weighted values from each distribution and find the one with 
+            # the largest expected value.
+            avg_dist_values = np.sum(weighted_dists, axis=1)
+            print(avg_dist_values);
+            action = np.argmax(avg_dist_values)
             
         return action
     
