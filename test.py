@@ -22,12 +22,12 @@ enviroment = parameter["enviroment"]
 
 def validation(env, sonic):
     env = Monitor(env, './video',force=True)
-    sonic.createModel(env,'best_reward_sonic.h5')
+    sonic.createModel(env,'sonic_model_final.h5')
 
     obs = env.reset()
     done = False
     while not done:
-        action = sonic.policy(obs)
+        action = sonic.get_action(obs)
         next_obs, reward, done, info = env.step(action)
         print("Para la accion #{} la recompensa es {}".format(action, reward))
         env.render()

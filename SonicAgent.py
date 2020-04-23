@@ -83,7 +83,7 @@ class SonicAgent():
         # Sum the weighted values from each distribution and find the one with 
         # the largest expected value.
         avg_dist_values = np.sum(weighted_dists, axis=1)
-        print(avg_dist_values);
+        #print(avg_dist_values);
         action = np.argmax(avg_dist_values)
             
         return action
