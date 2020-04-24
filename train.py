@@ -21,7 +21,7 @@ parameter = json.load(open('sonic.json', 'r'))
 agent = parameter["agent"]
 enviroment = parameter["enviroment"]
 
-steps_episode = agent["steps_episode"];
+steps_episode = agent["steps_episode"]
 writer = SummaryWriter(agent["logs"])
 update_target_freq = agent["update_target_freq"]
 timestep_per_train = agent["timestep_per_train"]
@@ -31,20 +31,19 @@ def training(env,sonic,global_step_num,epsilon_decay):
     
     total_reward = 0.0
     
-    sonic.createModel(env,'sonic_model_final.h5')
+    sonic.createModel(env)
      
     for episodes in range(max_num_episodes):
         obs = env.reset()
         done = False
         total_reward = 0.0
-        best_reward = 0.0
         steps = 0
         print("Empieza Episodio #{}".format(episodes + 1))
         while not done:
             action = sonic.policy(obs,epsilon_decay(global_step_num))
             writer.add_scalar("epsilon", epsilon_decay(global_step_num),global_step_num)
             
-            next_obs, reward, done, info = env.step(action)
+            next_obs, reward, done, _ = env.step(action)
             
             sonic.save_memory(obs,action,reward,next_obs,done)
                         
@@ -55,8 +54,6 @@ def training(env,sonic,global_step_num,epsilon_decay):
             if enviroment["render"]:
                 env.render()
                 
-            if len(sonic.memory) > 2 * agent["batch_replay"]:
-                sonic.replay_and_learn()
                 
             global_step_num += 1
             steps += 1
@@ -75,10 +72,6 @@ def training(env,sonic,global_step_num,epsilon_decay):
 
         if ((episodes % 100) == 0):
             sonic.replay_and_learn()
-            
-        if (total_reward > best_reward):
-            best_reward = total_reward
-            sonic.save_model('models/best_reward_sonic.h5')
    
        
         print("Episodio #{} finalizado con recompensa {}".format(episodes + 1, total_reward))

@@ -47,8 +47,8 @@ class SonicAgent():
 
         dqn = DQN(self.observation_shape, self.action_space.n, self.lr)
            
-        self.model = dqn.createModel()
-        self.target_model = dqn.createModel()
+        self.model = dqn.dueling_dqn3()
+        self.target_model = dqn.dueling_dqn3()
       
        
         if file_name_h5 != None:
