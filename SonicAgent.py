@@ -32,7 +32,7 @@ class SonicAgent():
     def __init__(self,lr = 0.0001, 
                 gamma = 0.99, 
                 priority_experience = True, 
-                max_memory = 50000,
+                max_memory = 5000,
                 batch_size = 64,
                 n_step = 4,
                 training = False):      

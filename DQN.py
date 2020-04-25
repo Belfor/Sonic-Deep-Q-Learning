@@ -43,6 +43,30 @@ class DQN:
         
         return model
     
+    def createModel2(self):
+        inputs = Input(self.input_shape)
+        x = Conv2D(32,kernel_size = (8,8),strides = (4,4),padding = 'valid',activation='relu')(inputs)
+        x = Conv2D(64,kernel_size = (4,4),strides = (2,2),activation='relu')(x)
+        x = Conv2D(64,kernel_size = (4,4),strides = (2,2),activation='relu')(x)
+        x = Flatten()(x)
+        if self.dueling:
+            advantage = Dense(256,activation='relu')(x)
+            advantage = Dense(self.output_shape)(advantage)
+            advantage = Lambda(lambda a: a[:, :] - K.mean(a[:, :], keepdims=True), output_shape=(self.output_shape,))(advantage)
+             
+            value = Dense(256,activation='relu')(x)
+            value = Dense(1 ,activation='linear')(value)
+            value = Lambda(lambda s: K.expand_dims(s[:, 0], axis=-1), output_shape=(self.output_shape,))(value)
+            
+            x = Add()([value, advantage])
+        else: 
+            x = Dense(self.output_shape ,activation='linear')(x)
+            
+        model = Model(inputs=inputs,outputs=x)
+        model.summary()
+        model.compile(loss=keras.losses.mean_squared_error,optimizer=keras.optimizers.Adam(lr=self.lr),metrics=["accuracy"])
+        
+        return model
 
     def dueling_dqn(self):
         inputs = Input(self.input_shape)

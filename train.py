@@ -63,7 +63,7 @@ def training(sonic,global_step_num,epsilon_decay,level):
             global_step_num += 1
             steps += 1
             
-            if global_step_num > sonic.max_memory * sonic.n_step:
+            if global_step_num > sonic.max_memory * sonic.n_step * 2:
                 if ((global_step_num % update_target_freq) == 0):
                     sonic.update_target_model()
                     
