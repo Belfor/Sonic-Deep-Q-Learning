@@ -12,14 +12,14 @@ class NStep():
         self.exps = deque(maxlen=n_step)
 
     def append(self, reward, exp):
-        self.rewards.appendleft(reward)
+        self.rewards.append(reward)
         self.exps.append(exp)
         self.step += 1
 
     def calculate_rewards_nstep(self):
         total_rewards = 0
         for i in range(len(self.rewards)):
-            total_rewards += ((self.gamma ** i) * self.rewards[i]) 
+            total_rewards += ((self.gamma ** (i + 1)) * self.rewards[i]) 
         obs, action, _ = self.exps[-1]
         next_obs, _, done = self.exps[0]
 
