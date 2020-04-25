@@ -31,7 +31,7 @@ def training(sonic,global_step_num,epsilon_decay,level):
     n_step = NStep(sonic.n_step,sonic.gamma)
   
     env = make(level[0],level[1])
-    env = make_env(env,allow_backtracking=True)
+    env = make_env(env,allow_backtracking=False)
     sonic.load_network(env)
      
     for episodes in range(max_num_episodes):

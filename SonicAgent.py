@@ -31,7 +31,7 @@ if gpus:
 class SonicAgent():
     def __init__(self,lr = 0.0001, 
                 gamma = 0.99, 
-                priority_experience = False, 
+                priority_experience = True, 
                 max_memory = 5000,
                 batch_size = 64,
                 n_step = 4,
@@ -112,16 +112,19 @@ class SonicAgent():
 
             inputs[i] = obs   
 
-            prev_q = self.model.predict(obs)[0][action]
-            q_next = self.target_model.predict(next_obs)[0]
+            q = self.model.predict(obs)[0]
+
+            q_val = self.model.predict(next_obs)[0][action]
+            q_val_target = self.target_model.predict(next_obs)[0]
 
             if done:
-                v = reward
+                target = reward
             else:           
-                v = reward + self.gamma * np.amax(q_next)
+                target = reward + self.gamma * np.amax(q_val_target)
             
-            targets[i,action] = v
-            errors.append(abs(prev_q - v))
+            q[action] = target
+            targets[i,] = q
+            errors.append(abs(q_val - target))
 
         return inputs, targets, errors
 
