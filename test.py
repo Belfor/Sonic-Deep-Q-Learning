@@ -20,15 +20,18 @@ agent = parameter["agent"]
 enviroment = parameter["enviroment"]
 
 
-def validation(env, sonic):
+def validation( sonic,level):
+    env = make(level[0],level[1])
+    env = make_env(env)
     env = Monitor(env, './video',force=True)
-    sonic.createModel(env,'sonic_model_final.h5')
+    sonic.load_network(env)
+    sonic.load_model('models/sonic_model_'+ level[0] +'_' + level[1] + '.h5')
 
     obs = env.reset()
     done = False
     while not done:
-        action = sonic.policy(obs)
-        next_obs, reward, done, info = env.step(action)
+        action = sonic.get_action(obs)
+        next_obs, reward, done, _ = env.step(action)
         print("Para la accion #{} la recompensa es {}".format(action, reward))
         env.render()
         obs = next_obs
@@ -45,13 +48,12 @@ if __name__ == '__main__':
     else:
         levels = [0..levelManager.size_maps_training() - 1]
     
-    sonic = SonicAgent(False)
+    sonic = SonicAgent(training=False)
       
     for i in levels:
         print("Mapa #{} Comienza...".format(i))
         level = levelManager.getMap(i)
-        env = make(level[0],level[1])
-        env = make_env(env, noop_rest=False)
-        validation(env,sonic)
+     
+        validation(sonic,level)
             
         print("Mapa #{} Finaliza...".format(i))

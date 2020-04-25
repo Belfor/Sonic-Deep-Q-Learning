@@ -16,7 +16,7 @@ def make_env(env,stack=True, scale_rew=False, noop_rest=False, allow_backtrackin
     Create an environment with some standard wrappers.
     """
     env = SonicDiscretizer(env)
-    env = WarpFrame(env)
+    env = WarpFrame(env, 128, 128)
     
     if scale_rew:
         env = RewardScaler(env)

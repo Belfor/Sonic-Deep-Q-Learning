@@ -3,7 +3,7 @@
         "episodes": 1500,
         "steps_episode": 4500,
         "learning_rate": 0.0001,
-        "gamma": 0.95,
+        "gamma": 0.99,
         "max_memory": 50000,
         "batch_size": 64,
         "batch_replay": 1024,
@@ -13,7 +13,9 @@
         "models": "models/",
         "only_reward_postive" : true,
         "update_target_freq" : 10000, 
-        "timestep_per_train" : 2000
+        "timestep_per_train" : 2000,
+        "n_step": 4,
+        "priority_experience": true
     },
     "enviroment" :{
         "render" : false,
