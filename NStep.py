@@ -15,14 +15,13 @@ class NStep():
         self.rewards.append(reward)
         self.exps.append(exp)
         self.step += 1
-
     def calculate_rewards_nstep(self):
         total_rewards = 0
         for i in range(len(self.rewards)):
             total_rewards += ((self.gamma ** (i + 1)) * self.rewards[i]) 
         obs, action, _ = self.exps[-1]
         next_obs, _, done = self.exps[0]
-
+       
         self.step = 0
         return obs,action,total_rewards,next_obs,done
     
@@ -32,6 +31,6 @@ class NStep():
         self.exps.clear()
 
     def is_last_step(self):
-        if (self.step == self.n_step - 1):
+        if (self.step == self.n_step):
             return True
         return False
