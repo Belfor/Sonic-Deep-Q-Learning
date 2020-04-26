@@ -26,7 +26,7 @@ writer = SummaryWriter(agent["logs"])
 update_target_freq = agent["update_target_freq"]
 timestep_per_train = agent["timestep_per_train"]
 max_num_episodes =agent["episodes"]
-max_steps = agent["max_steps"]
+
 
 def training(sonic,global_step_num,epsilon_decay,level):
     n_step = NStep(sonic.n_step,sonic.gamma)
