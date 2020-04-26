@@ -47,7 +47,7 @@ class PriorityExperienceMemory:
         """
         mini_batch = []
         indicies = []
-
+        errors = []
         segment = self.tree.total() / n
 
         for i in range(n):
@@ -56,10 +56,13 @@ class PriorityExperienceMemory:
 
             s = random.uniform(a, b)
             
-            (idx, _, experience) = self.tree.get(s)
+            (idx, error, experience) = self.tree.get(s)
+            errors.append(error)
             mini_batch.append(experience)
             indicies.append(idx)
 
+        print(errors)
+        input()
         return mini_batch, indicies
 
     def update(self, idx, error):

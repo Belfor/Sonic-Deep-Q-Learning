@@ -31,8 +31,8 @@ if gpus:
 class SonicAgent():
     def __init__(self,lr = 0.0001, 
                 gamma = 0.99, 
-                priority_experience = True, 
-                max_memory = 5000,
+                priority_experience = False, 
+                max_memory = 50000,
                 batch_size = 64,
                 n_step = 4,
                 training = False):      
@@ -62,8 +62,8 @@ class SonicAgent():
 
         dqn = DQN(self.observation_shape, self.action_space.n, self.lr)
            
-        self.model = dqn.dueling_dqn3()
-        self.target_model = dqn.dueling_dqn3()
+        self.model = dqn.dueling_dqn()
+        self.target_model = dqn.dueling_dqn()
                 
     def update_target_model(self):
         self.target_model.set_weights(self.model.get_weights())
@@ -118,13 +118,12 @@ class SonicAgent():
             q_val_target = self.target_model.predict(next_obs)[0]
 
             if done:
-                target = reward
+                q[action] = reward
             else:           
-                target = reward + self.gamma * np.amax(q_val_target)
+                q[action] = reward + self.gamma * np.amax(q_val_target)
             
-            q[action] = target
             targets[i,] = q
-            errors.append(abs(q_val - target))
+            errors.append(abs(q_val - q[action]))
 
         return inputs, targets, errors
 

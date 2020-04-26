@@ -46,7 +46,8 @@ def training(sonic,global_step_num,epsilon_decay,level):
             writer.add_scalar("epsilon", epsilon_decay(global_step_num),global_step_num)
             
             next_obs, reward, done, _ = env.step(action)
-            
+            if done == True and total_reward < 9000:
+                reward = -200
             n_step.append(reward, (next_obs,action,done))
             if n_step.is_last_step():
                 first_obs,first_action,rewards_n_step,last_obs,last_done = n_step.calculate_rewards_nstep()

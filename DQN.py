@@ -24,19 +24,17 @@ class DQN:
         x = Conv2D(64,kernel_size = (4,4),strides = (2,2),activation='relu')(x)
         x = Conv2D(128,kernel_size = (4,4),strides = (2,2),activation='relu')(x)
         x = Flatten()(x)
-        if self.dueling:
-            advantage = Dense(512,activation='relu')(x)
-            advantage = Dense(self.output_shape)(advantage)
-            advantage = Lambda(lambda a: a[:, :] - K.mean(a[:, :], keepdims=True), output_shape=(self.output_shape,))(advantage)
+        
+        advantage = Dense(512,activation='relu')(x)
+        advantage = Dense(self.output_shape)(advantage)
+        advantage = Lambda(lambda a: a[:, :] - K.mean(a[:, :], keepdims=True), output_shape=(self.output_shape,))(advantage)
              
-            value = Dense(512,activation='relu')(x)
-            value = Dense(1 ,activation='linear')(value)
-            value = Lambda(lambda s: K.expand_dims(s[:, 0], axis=-1), output_shape=(self.output_shape,))(value)
+        value = Dense(512,activation='relu')(x)
+        value = Dense(1 ,activation='linear')(value)
+        value = Lambda(lambda s: K.expand_dims(s[:, 0], axis=-1), output_shape=(self.output_shape,))(value)
             
-            x = Add()([value, advantage])
-        else: 
-            x = Dense(self.output_shape ,activation='linear')(x)
-            
+        x = Add()([value, advantage])
+      
         model = Model(inputs=inputs,outputs=x)
         model.summary()
         model.compile(loss=keras.losses.mean_squared_error,optimizer=keras.optimizers.Adam(lr=self.lr),metrics=["accuracy"])

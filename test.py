@@ -26,16 +26,17 @@ def validation( sonic,level):
     env = Monitor(env, './video',force=True)
     sonic.load_network(env)
     sonic.load_model('models/sonic_model_'+ level[0] +'_' + level[1] + '.h5')
-
+    total_reward = 0
     obs = env.reset()
     done = False
     while not done:
         action = sonic.get_action(obs)
         next_obs, reward, done, _ = env.step(action)
-        print("Para la accion #{} la recompensa es {}".format(action, reward))
+        total_reward += reward
         env.render()
         obs = next_obs
     env.close()
+    print("La recompensa total es #{}".format(total_reward))
     
     
 if __name__ == '__main__':
