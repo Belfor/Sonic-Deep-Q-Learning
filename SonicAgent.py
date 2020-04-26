@@ -62,8 +62,8 @@ class SonicAgent():
 
         dqn = DQN(self.observation_shape, self.action_space.n, self.lr)
            
-        self.model = dqn.dueling_dqn()
-        self.target_model = dqn.dueling_dqn()
+        self.model = dqn.createModel()
+        self.target_model = dqn.createModel()
                 
     def update_target_model(self):
         self.target_model.set_weights(self.model.get_weights())
