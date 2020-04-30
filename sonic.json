@@ -1,6 +1,6 @@
 {
     "agent" :{
-        "episodes": 10000,
+        "episodes": 35000,
         "steps_episode": 4500,
         "learning_rate": 0.0001,
         "gamma": 0.99,
