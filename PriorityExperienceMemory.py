@@ -61,8 +61,6 @@ class PriorityExperienceMemory:
             mini_batch.append(experience)
             indicies.append(idx)
 
-        print(errors)
-        input()
         return mini_batch, indicies
 
     def update(self, idx, error):
