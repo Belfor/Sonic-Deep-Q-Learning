@@ -11,9 +11,9 @@
         "epsilon_min": 0.1,
         "logs" :"logs/",
         "models": "models/",
-        "only_reward_postive" : true,
         "update_target_freq" : 10000, 
-        "timestep_per_train" : 2000,
+        "timestep_per_train" : 25000,
+        "frecuency_mean": 500000,
         "n_step": 4,
         "priority_experience": true
     },

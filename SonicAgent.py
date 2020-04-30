@@ -31,7 +31,7 @@ if gpus:
 class SonicAgent():
     def __init__(self,lr = 0.0001, 
                 gamma = 0.99, 
-                priority_experience = False, 
+                priority_experience = True, 
                 max_memory = 50000,
                 batch_size = 64,
                 n_step = 4,
@@ -62,8 +62,8 @@ class SonicAgent():
 
         dqn = DQN(self.observation_shape, self.action_space.n, self.lr)
            
-        self.model = dqn.createModel()
-        self.target_model = dqn.createModel()
+        self.model = dqn.dueling_dqn()
+        self.target_model = dqn.dueling_dqn()
                 
     def update_target_model(self):
         self.target_model.set_weights(self.model.get_weights())

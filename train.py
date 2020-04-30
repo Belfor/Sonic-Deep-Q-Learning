@@ -26,15 +26,23 @@ writer = SummaryWriter(agent["logs"])
 update_target_freq = agent["update_target_freq"]
 timestep_per_train = agent["timestep_per_train"]
 max_num_episodes =agent["episodes"]
+frecuency_mean = agent["frecuency_mean"]
 
+_lr = agent["learning_rate"]
+_gamma = agent["gamma"]
+_batch_size = agent["batch_size"]
+_n_step = agent["n_step"]
+_priority_experience = agent["priority_experience"]
+_max_memory = agent["max_memory"]
 
 def training(sonic,global_step_num,epsilon_decay,level):
     n_step = NStep(sonic.n_step,sonic.gamma)
   
     env = make(level[0],level[1])
     env = make_env(env,allow_backtracking=False)
+
     sonic.load_network(env)
-     
+    rewards = []
     for episodes in range(max_num_episodes):
         n_step.clear()
         obs = env.reset()
@@ -47,8 +55,7 @@ def training(sonic,global_step_num,epsilon_decay,level):
             writer.add_scalar("epsilon", epsilon_decay(global_step_num),global_step_num)
             
             next_obs, reward, done, _ = env.step(action)
-            #if done == True and total_reward < 9000:
-            #    reward = -200
+           
             n_step.append(reward, (next_obs,action,done))
             if n_step.is_last_step():
                 first_obs,first_action,rewards_n_step,last_obs,last_done = n_step.calculate_rewards_nstep()
@@ -76,10 +83,13 @@ def training(sonic,global_step_num,epsilon_decay,level):
         first_obs,first_action,rewards_n_step,last_obs,last_done = n_step.calculate_rewards_nstep()
         sonic.save_memory(first_obs,first_action,rewards_n_step,last_obs,last_done)
         
+        rewards.append(total_reward)
+
         print("Episodio #{} finalizado con recompensa {}".format(episodes + 1, total_reward))
-        writer.add_scalar('ep_reward', total_reward, global_step_num)
-        if (episodes + 1) %  300:
-            sonic.save_model('models/sonic_model_'+ level[0] +'_' + level[1] + '.h5')
+        if len(rewards) % frecuency_mean: 
+            writer.add_scalar('rewards', np.mean(total_reward), global_step_num)
+            sonic.save_model('models/sonic_model_'+ level[0] +'_' + level[1] + '_' + str(global_step_num) + '.h5')
+            rewards = []
       
         
     sonic.save_model('models/sonic_model_'+ level[0] +'_' + level[1] + '.h5')
@@ -106,9 +116,15 @@ if __name__ == '__main__':
     setps_per_episode = agent["steps_episode"]
     linear_schedule = LinearDecaySchedule( epsilon_initial,
                                            epsilon_final, 
-                                           len(levels) * max_num_episodes * setps_per_episode)
+                                           len(levels) * max_num_episodes * setps_per_episode * 0.8)
     
-    sonic = SonicAgent(training=True)
+    sonic = SonicAgent(lr = _lr, 
+                gamma = _gamma, 
+                priority_experience = _priority_experience, 
+                max_memory = _max_memory,
+                batch_size = _batch_size,
+                n_step = _n_step,
+                training = True)
       
     for i in levels:
         print("Mapa #{} Comienza...".format(i))
